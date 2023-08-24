@@ -1,7 +1,9 @@
 package main
 
 import (
+	"flag"
 	"os"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 
@@ -9,11 +11,18 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 2 {
+	metaFlag := flag.Bool("metadata", false, "")
+	flag.Parse()
+
+	var links []string
+	for _, arg := range os.Args[1:] {
+		if !strings.HasPrefix(arg, "-") {
+			links = append(links, arg)
+		}
+	}
+	if len(links) == 0 {
 		logrus.Fatal("you need urls")
 	}
-
-	links := os.Args[1:]
 	app := internal.NewApp(links)
-	app.Exec()
+	app.Exec(*metaFlag)
 }
