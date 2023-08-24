@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 )
@@ -22,16 +24,30 @@ func NewApp(links []string) *App {
 
 func (app *App) Exec() {
 	for _, link := range app.Links {
+
+		if !strings.HasPrefix(link, "http") {
+			link = "https://" + link
+		}
+
+		url2, err := url.Parse(link)
+		if err != nil {
+			logrus.Error(err)
+			continue
+		}
+
 		b, err := Fetch(link)
 		if err != nil {
 			logrus.Error(err)
 			continue
 		}
 
-		err = os.WriteFile(link+".html", b, 0644)
+		fileName := url2.Host + url2.Path + ".html"
+		fileName = strings.TrimRight(fileName, "/")
+		fileName = strings.Replace(fileName, "/", "_", -1)
+		err = os.WriteFile(fileName, b, 0644)
 		if err != nil {
 			fmt.Println("Error saving to disk:", err)
-			return
+			continue
 		}
 	}
 }
