@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -24,7 +25,6 @@ func NewApp(links []string) *App {
 
 func (app *App) Exec() {
 	for _, link := range app.Links {
-
 		if !strings.HasPrefix(link, "http") {
 			link = "https://" + link
 		}
@@ -67,6 +67,13 @@ func Fetch(url string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	bodyString := string(bodyBytes)
+	urlRegex, _ := regexp.Compile("<a[^>]*href=[\"']([^\"']*)[\"'][^>]*>")
+	urls := urlRegex.FindAllString(bodyString, -1)
+	imgRegex, _ := regexp.Compile("<img[^>]*src=[\"']([^\"']*)[\"'][^>]*>")
+	imgs := imgRegex.FindAllString(bodyString, -1)
+	logrus.Info(len(urls), len(imgs))
 
 	return bodyBytes, nil
 }

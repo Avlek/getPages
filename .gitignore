@@ -1,1 +1,5 @@
 .idea
+
+*.html
+*.js
+*.css
